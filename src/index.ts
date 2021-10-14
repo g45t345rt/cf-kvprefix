@@ -2,7 +2,7 @@ import KVPrefix from './KVPrefix'
 import { CFApi, KVNamespaceApi } from './CFApi'
 import Prefix from './prefix'
 
-export default {
+export {
   KVPrefix,
   Prefix,
   CFApi,
