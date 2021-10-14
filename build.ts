@@ -11,7 +11,7 @@ Object.keys(formats).forEach(key => {
   const extension = formats[key]
 
   esbuild.build({
-    entryPoints: ['./src/prefix.ts', './src/CFApi.ts', './src/KVPrefix.ts'],
+    entryPoints: ['./src/index.ts', './src/prefix.ts', './src/CFApi.ts', './src/KVPrefix.ts'],
     format: key as esbuild.Format,
     outExtension: { '.js': extension },
     outdir: `./dist`
