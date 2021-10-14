@@ -1,11 +1,11 @@
 import Prefix from './prefix'
 
-interface PutOptions {
+export interface PutOptions {
   expiration?: string | number
   expirationTtl?: string | number
 }
 
-interface ListOptions {
+export interface ListOptions {
   indexKey?: string
   limit?: number
   cursor?: string

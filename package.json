@@ -1,18 +1,19 @@
 {
   "name": "cf-kvprefix",
-  "version": "1.0.0",
-  "description": "Cloudflare ssr web template",
-  "types": "./dist/KVPrefix.d.ts",
-  "main": "./dist/KVPrefix",
-  "browser": "./dist/KVPrefix.js",
-  "module": "./dist/KVPrefix.mjs",
+  "version": "1.0.1",
+  "description": "Clouflare KV prefix handler",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index",
+  "browser": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "files": [
     "dist"
   ],
   "scripts": {
     "test": "ava --verbose test/*.spec.ts --watch",
     "build": "ts-node build.ts && tsc --emitDeclarationOnly --outDir dist",
-    "cli": "ts-node ./src/cli.ts"
+    "cli": "ts-node ./src/cli.ts",
+    "prepublish": "npm run build"
   },
   "ava": {
     "extensions": [
