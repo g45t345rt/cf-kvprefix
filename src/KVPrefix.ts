@@ -13,6 +13,7 @@ export interface ListOptions {
 
 interface ListItem<T> {
   key: string
+  fullKey: string
   expiration?: number
   value?: T
 }
@@ -26,10 +27,12 @@ interface List<T> {
 export default class KVPrefix<T> {
   private prefix: Prefix<T>
   private kv: KVNamespace
+  private waitUntil?: (promise: Promise<any>) => void
 
-  constructor(kv: KVNamespace, prefix: Prefix<T>) {
+  constructor(kv: KVNamespace, prefix: Prefix<T>, waitUntil?: (promise: Promise<any>) => void) {
     this.kv = kv
     this.prefix = prefix
+    this.waitUntil = waitUntil
   }
 
   getData = async (key: string, indexKey?: string): Promise<T> => {
@@ -45,7 +48,9 @@ export default class KVPrefix<T> {
     const oldData = await this.getData(key)
     await this.kv.put(this.prefix.createDataKey(key), JSON.stringify(data), { metadata: data, ...options })
 
-    this.prefix.listIndex().forEach(index => {
+    const indexes = this.prefix.listIndex()
+    for (let i = 0; i < indexes.length; i++) {
+      const index = indexes[i]
       const { definition } = index
       const { filter } = definition
       const newIndexDataKey = this.prefix.createIndexDataKey(index, data, key)
@@ -53,13 +58,18 @@ export default class KVPrefix<T> {
       if (oldData) {
         const oldIndexDataKey = this.prefix.createIndexDataKey(index, oldData, key)
         if (oldIndexDataKey !== newIndexDataKey) {
-          this.kv.delete(oldIndexDataKey)
+          const deletePromise = this.kv.delete(oldIndexDataKey)
+          if (this.waitUntil) this.waitUntil(deletePromise)
+          else await deletePromise
         }
       }
 
-      if (typeof filter === 'function' && !filter(data)) return
-      this.kv.put(newIndexDataKey, JSON.stringify(data), { metadata: data, ...options })
-    })
+      if (typeof filter === 'function' && !filter(data)) continue // skip put
+
+      const putPromise = this.kv.put(newIndexDataKey, JSON.stringify(data), { metadata: data, ...options })
+      if (this.waitUntil) this.waitUntil(putPromise)
+      else await putPromise
+    }
   }
 
   deleteData = async (key: string): Promise<boolean> => {
@@ -68,10 +78,14 @@ export default class KVPrefix<T> {
 
     await this.kv.delete(this.prefix.createDataKey(key))
 
-    this.prefix.listIndex().forEach(index => {
+    const indexes = this.prefix.listIndex()
+    for (let i = 0; i < indexes.length; i++) {
+      const index = indexes[i]
       const indexDataKey = this.prefix.createIndexDataKey(index, data, key)
-      this.kv.delete(indexDataKey)
-    })
+      const deletePromise = this.kv.delete(indexDataKey)
+      if (this.waitUntil) this.waitUntil(deletePromise)
+      else await deletePromise
+    }
 
     return true
   }
@@ -86,7 +100,7 @@ export default class KVPrefix<T> {
       const keys = name.split('::')
       const key = keys[keys.length - 1]
 
-      const item = { key, value: metadata as T } as ListItem<T>
+      const item = { key, fullKey: name, value: metadata as T } as ListItem<T>
       if (expiration) item.expiration = expiration
       return item
     })
