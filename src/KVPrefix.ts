@@ -1,8 +1,8 @@
 import Prefix from './prefix'
 
 export interface PutOptions {
-  expiration?: string | number
-  expirationTtl?: string | number
+  expiration?: number
+  expirationTtl?: number
 }
 
 export interface ListOptions {
@@ -27,12 +27,12 @@ interface List<T> {
 export default class KVPrefix<T> {
   private prefix: Prefix<T>
   private kv: KVNamespace
-  private waitUntil?: (promise: Promise<any>) => void
+  private ctx?: any
 
-  constructor(kv: KVNamespace, prefix: Prefix<T>, waitUntil?: (promise: Promise<any>) => void) {
+  constructor(kv: KVNamespace, prefix: Prefix<T>, ctx?) {
     this.kv = kv
     this.prefix = prefix
-    this.waitUntil = waitUntil
+    this.ctx = ctx // use cf context instead of passing waitUntil -- avoid illegal invocation on live servers
   }
 
   getData = async (key: string, indexKey?: string): Promise<T> => {
@@ -59,7 +59,7 @@ export default class KVPrefix<T> {
         const oldIndexDataKey = this.prefix.createIndexDataKey(index, oldData, key)
         if (oldIndexDataKey !== newIndexDataKey) {
           const deletePromise = this.kv.delete(oldIndexDataKey)
-          if (this.waitUntil) this.waitUntil(deletePromise)
+          if (this.ctx) this.ctx.waitUntil(deletePromise)
           else await deletePromise
         }
       }
@@ -67,7 +67,7 @@ export default class KVPrefix<T> {
       if (typeof filter === 'function' && !filter(data)) continue // skip put
 
       const putPromise = this.kv.put(newIndexDataKey, JSON.stringify(data), { metadata: data, ...options })
-      if (this.waitUntil) this.waitUntil(putPromise)
+      if (this.ctx) this.ctx.waitUntil(putPromise)
       else await putPromise
     }
   }
@@ -83,7 +83,7 @@ export default class KVPrefix<T> {
       const index = indexes[i]
       const indexDataKey = this.prefix.createIndexDataKey(index, data, key)
       const deletePromise = this.kv.delete(indexDataKey)
-      if (this.waitUntil) this.waitUntil(deletePromise)
+      if (this.ctx) this.ctx.waitUntil(deletePromise)
       else await deletePromise
     }
 
