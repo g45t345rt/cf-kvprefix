@@ -27,9 +27,9 @@ interface List<T> {
 export default class KVPrefix<T> {
   private prefix: Prefix<T>
   private kv: KVNamespace
-  private ctx?: any
+  private ctx?: ExecutionContext
 
-  constructor(kv: KVNamespace, prefix: Prefix<T>, ctx?) {
+  constructor(kv: KVNamespace, prefix: Prefix<T>, ctx?: ExecutionContext) {
     this.kv = kv
     this.prefix = prefix
     this.ctx = ctx // use cf context instead of passing waitUntil -- avoid illegal invocation on live servers
