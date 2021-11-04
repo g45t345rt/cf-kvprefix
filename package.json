@@ -36,13 +36,13 @@
     "ava": "^3.15.0",
     "cloudflare": "^2.9.1",
     "esbuild": "^0.13.12",
+    "faker": "^5.5.3",
     "isomorphic-fetch": "^3.0.0",
     "miniflare": "^1.4.1",
+    "nanoid": "^3.1.30",
     "ts-node": "^10.4.0"
   },
   "dependencies": {
-    "enquirer": "^2.3.6",
-    "faker": "^5.5.3",
-    "nanoid": "^3.1.30"
+    "enquirer": "^2.3.6"
   }
 }
