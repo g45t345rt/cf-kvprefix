@@ -1,10 +1,14 @@
 import KVPrefix from './KVPrefix'
-import { CFApi, KVNamespaceApi } from './CFApi'
+import CFApi from './CFApi'
+import KVNamespaceApi from './KVNamespaceApi'
+import { KVStackWrite, KVStackDelete } from './KVStackFetch'
 import Prefix from './prefix'
 
 export {
   KVPrefix,
   Prefix,
   CFApi,
-  KVNamespaceApi
+  KVNamespaceApi,
+  KVStackDelete,
+  KVStackWrite
 }
