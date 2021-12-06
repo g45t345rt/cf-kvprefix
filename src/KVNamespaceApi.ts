@@ -11,7 +11,7 @@ export default class KVNamespaceApi {
   }
 
   beginStackWrite = (chunkSize?: number) => new KVStackWrite(this, chunkSize)
-  
+
   beginStackDelete = (chunkSize?: number) => new KVStackDelete(this, chunkSize)
 
   forEachBulkKeys = async (options: { chunkSize: number; prefix?: string }, onChunk: (data: any) => void) => {
@@ -78,6 +78,24 @@ export default class KVNamespaceApi {
     const init = {
       method: 'GET',
       params: listOptions,
+      headers: cfApi.baseHeaders()
+    } as RequestInit
+
+    try {
+      const res = await fetch(endpoint, init)
+      return await res.json()
+    } catch (err) {
+      return err
+    }
+  }
+
+  readKeyValue = async (key: string): Promise<Response<void>> => {
+    const { cfApi, namespaceId } = this
+
+    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${cfApi.accountId}/storage/kv/namespaces/${namespaceId}/values/${key}`
+
+    const init = {
+      method: 'GET',
       headers: cfApi.baseHeaders()
     } as RequestInit
 

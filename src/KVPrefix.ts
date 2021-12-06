@@ -11,14 +11,14 @@ export interface ListOptions {
   cursor?: string
 }
 
-interface ListItem<T> {
+export interface ListItem<T> {
   key: string
   fullKey: string
   expiration?: number
   value?: T
 }
 
-interface List<T> {
+export interface List<T> {
   complete: boolean
   cursor?: string
   data: ListItem<T>[]
