@@ -13,7 +13,7 @@
     "test": "ava --verbose test/*.spec.ts --watch",
     "build": "ts-node build.ts && tsc --emitDeclarationOnly --outDir dist",
     "cli": "ts-node ./src/cli.ts",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "ava": {
     "extensions": [
