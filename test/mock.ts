@@ -12,7 +12,8 @@ export interface User {
   email: string
   active: boolean
   points: number
-  createdAt: number
+  createdAt: number,
+  notInMetadata: string
 }
 
 const toUnix = (date: Date) => new Date(date).getTime()
@@ -24,7 +25,8 @@ export const mockUser = (): [string, User] => {
     email: faker.internet.email(),
     points: Math.random() * 100,
     active: faker.datatype.boolean(),
-    createdAt: toUnix(faker.date.recent(1000))
+    createdAt: toUnix(faker.date.recent(1000)),
+    notInMetadata: `I'm not supposed to be in metadata`
   } as User
 
   return [key, user]

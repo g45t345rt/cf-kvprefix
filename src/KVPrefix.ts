@@ -3,6 +3,7 @@ import Prefix from './prefix'
 export interface PutOptions {
   expiration?: number
   expirationTtl?: number
+  omit?: string[] // omit properties for metadata only
 }
 
 export interface ListOptions {
@@ -40,13 +41,19 @@ export default class KVPrefix<T> {
     if (indexKey) keys = [...keys, indexKey, key]
     else keys = [...keys, 'key', key]
     const joinKey = keys.join('::')
-    const { metadata } = await this.kv.getWithMetadata(joinKey, 'json')
-    return metadata as T
+    return await this.kv.get(joinKey, 'json')
   }
 
   putData = async (key: string, data: T, options: PutOptions = {}) => {
     const oldData = await this.getData(key)
-    await this.kv.put(this.prefix.createDataKey(key), JSON.stringify(data), { metadata: data, ...options })
+
+    const { expiration, expirationTtl, omit } = options
+    const metadata = Object.assign({}, data)
+    if (omit) {
+      omit.forEach(key => Reflect.deleteProperty(metadata, key))
+    }
+
+    await this.kv.put(this.prefix.createDataKey(key), JSON.stringify(data), { metadata, expiration, expirationTtl })
 
     const indexes = this.prefix.listIndex()
     for (let i = 0; i < indexes.length; i++) {
@@ -66,7 +73,7 @@ export default class KVPrefix<T> {
 
       if (typeof filter === 'function' && !filter(data)) continue // skip put
 
-      const putPromise = this.kv.put(newIndexDataKey, JSON.stringify(data), { metadata: data, ...options })
+      const putPromise = this.kv.put(newIndexDataKey, JSON.stringify(data), { metadata, expiration, expirationTtl })
       if (this.ctx) this.ctx.waitUntil(putPromise)
       else await putPromise
     }

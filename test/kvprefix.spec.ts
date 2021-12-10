@@ -31,13 +31,13 @@ test('kvprefix putData/getData/listData/deleteData', async (t) => {
 
   // Insert keys
   for (const [key, user] of userMap) {
-    await users.putData(key, user)
+    await users.putData(key, user, { omit: ['notInMetadata'] })
   }
 
   // Check if we can get the first user
   const [key, user] = userMap.entries().next().value
   let kvUser = await users.getData(key)
-  t.is(kvUser, user)
+  t.deepEqual(kvUser, user)
 
   let list = await users.listData()
 
@@ -51,6 +51,10 @@ test('kvprefix putData/getData/listData/deleteData', async (t) => {
   // Test listData() with limit zero
   const err = await t.throwsAsync(users.listData({ limit: 0 }), { instanceOf: TypeError })
   t.is(err.message, `Invalid limit: expected number > 0, got 0`)
+
+  // Metadata omit
+  list = await users.listData()
+  t.is(list.data[0].value.notInMetadata, undefined)
 
   // Test listDate() with limit of 5
   list = await users.listData({ limit: 5 })
@@ -92,20 +96,23 @@ test('kvprefix index data manipulation', async (t) => {
 
   // Insert keys after setting indexes
   for (const [key, user] of userMap) {
-    await users.putData(key, user)
+    await users.putData(key, user, { omit: ['notInMetadata'] })
   }
 
   const [key, user] = userMap.entries().next().value
 
   // Find user by username
   const userByUsername = await users.getData(user.username, `username`)
-  t.is(userByUsername, user)
+  t.deepEqual(userByUsername, user)
 
   // Default list with indexes
   let list = await users.listData()
   // list will contains all indexes + keys
   // you can use 'key' index
   //t.is(list.data.length, userMap.size)
+
+  // Metadata omit
+  t.is(list.data[0].value.notInMetadata, undefined)
 
   // Sort users by created date
   list = await users.listData({ indexKey: `createAt_desc` })
@@ -135,7 +142,7 @@ test('test waitUntil', async (t) => {
     kvNamespaces: ["TEST_NAMESPACE"],
 
   })
-  
+
   // const kv = await mf.getKVNamespace("TEST_NAMESPACE")
   const res = await mf.dispatchFetch("http://localhost:8787/")
   const waitUntil = await res.waitUntil()
